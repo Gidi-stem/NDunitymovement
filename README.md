@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NDUM — Niger Delta Unity Movement website
 
-## Getting Started
+Next.js 16 · TypeScript · Tailwind 4 · Supabase (Postgres, Auth, Storage) · Paystack (off by default).
+Read `docs/ARCHITECTURE.md` for the design and `docs/IMPLEMENTATION_REPORT.md` for status.
 
-First, run the development server:
-
+## Run locally
 ```bash
+npm install
+cp .env.example .env.local      # fill in Supabase values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+Without Supabase credentials the public pages still work; the application form, admin and payments show a clear "not set up yet" state.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploy (Vercel + Supabase)
+1. Create a Supabase project. In the SQL editor (or `supabase db push`) run, in order, `supabase/migrations/0001_schema.sql` → `0002_security.sql` → `0003_seed.sql` → `0004_storage.sql`.
+2. Copy the project URL, anon key and **service-role key** into the host's environment variables (see `.env.example`). Never prefix the service-role or Paystack keys with `NEXT_PUBLIC_`.
+3. Create the first Super Administrator: `npm run bootstrap:admin -- you@example.org "Full Name"` (uses `.env.local`; prints a one-time password).
+4. Sign in at `/admin/login`; add categories/chapters, leadership profiles, and other administrators.
+5. Deploy, then set `NEXT_PUBLIC_SITE_URL` to the live URL.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Switching on payments (only when NDUM is ready)
+1. NDUM opens a Paystack business account with its **official** settlement account.
+2. Add `PAYSTACK_SECRET_KEY` to the server environment.
+3. In Paystack dashboard set the webhook URL to `https://<site>/api/paystack/webhook`.
+4. In **Admin → Fees & settings**: mark the fee *Approved*, tick the confirmations, and activate payments.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Quality gates
+`npm run check` runs type-check, lint and all tests (database/RLS tests execute the real SQL migrations in an in-process Postgres).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Content slots
+Drop `logo.svg|png`, `hero.jpg`, `about.jpg` into `public/images/` (see the README there).
